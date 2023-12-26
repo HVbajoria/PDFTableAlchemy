@@ -1,16 +1,31 @@
 import streamlit as st
 import pandas as pd
-import tabula
+import zipfile
 from io import BytesIO
+import tabula
 import os
-import shutil
 
-def extract_tables_from_pdf(pdf_file):
+# Function to extract tables from PDF and create a zip archive
+def extract_and_zip(pdf_file):
     tables = tabula.read_pdf(pdf_file, pages='all', multiple_tables=True)
-    return tables
+    dataframes = {}
+    for i, table in enumerate(tables):
+        filename = f"Table_{i + 1}.xlsx"
+        dataframes[filename] = table
+
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'a', zipfile.ZIP_DEFLATED) as zip_file:
+        for filename, df in dataframes.items():
+            # Convert DataFrame to Excel file in memory
+            excel_buffer = BytesIO()
+            df.to_excel(excel_buffer, index=True, engine='openpyxl')
+            # Add Excel file to the zip archive
+            zip_file.writestr(filename, excel_buffer.getvalue())
+    zip_buffer.seek(0)
+    return zip_buffer
 
 def main():
-    st.title("PDF Table Alchemy")
+    st.title("PDF Table Extractor and Zip Download")
 
     pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 
@@ -18,26 +33,16 @@ def main():
         st.sidebar.subheader("Uploaded PDF:")
         st.sidebar.write(pdf_file.name)
 
-        tables = extract_tables_from_pdf(pdf_file)
+        # Display extracted tables
+        tables = tabula.read_pdf(pdf_file, pages='all', multiple_tables=True)
+        for i, table in enumerate(tables):
+            st.subheader(f"Table {i + 1}")
+            st.dataframe(table)
 
-        if tables:
-            st.sidebar.subheader("Number of Tables Extracted:")
-            st.sidebar.write(len(tables))
-
-            output_folder = "output_tables"
-            os.makedirs(output_folder, exist_ok=True)
-
-            for i, table in enumerate(tables):
-                excel_filename = os.path.join(output_folder, f"table_{i + 1}.xlsx")
-                table.to_excel(excel_filename, index=False, engine='openpyxl')
-                st.success(f"Table {i + 1} extracted. [Download Excel File]({excel_filename})")
-
-            # Create a zip file containing all Excel files
-            zip_filename = "output_tables.zip"
-            shutil.make_archive(os.path.splitext(zip_filename)[0], 'zip', output_folder)
-
-            # Provide a link to download the zip file
-            st.sidebar.success(f"[Download All Tables as Zip]({zip_filename})")
+        # Download button
+        if st.button('Download Tables as Zip'):
+            zip_buffer = extract_and_zip(pdf_file)
+            st.download_button(label='Download Zip', data=zip_buffer, file_name='tables.zip', key='download_button')
 
 if __name__ == "__main__":
     main()
