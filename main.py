@@ -10,7 +10,6 @@ import platform
 st.set_page_config( 
      page_title="PDFTableAlchemy", 
      page_icon="🗃️", 
-     layout="wide", 
  ) 
 
 hide_default_format = """ 
