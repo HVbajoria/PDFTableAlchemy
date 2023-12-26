@@ -81,8 +81,6 @@ def extract_and_zip(pdf_file):
     return zip_buffer
 
 def main():
-    java_path = get_java_path()
-    st.write(java_path)
     pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 
     if pdf_file is not None:
