@@ -82,7 +82,7 @@ def extract_and_zip(pdf_file):
 
 def main():
     java_path = get_java_path()
-    print(f"Java is installed at: {java_path}")
+    st.write(java_path)
     pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 
     if pdf_file is not None:
