@@ -4,6 +4,8 @@ import zipfile
 from io import BytesIO
 import tabula
 import os
+import subprocess
+import platform
 
 hide_default_format = """ 
         <style> 
@@ -47,6 +49,18 @@ text="Transforming PDF chaos into Excel gold with Table Alchemy!"
 styled_text = gradient(text, color1, color2)
 st.write(f"<div style='text-align:center;'>{styled_text}</div>",unsafe_allow_html=True)
 
+# Get path where Java is installed
+def get_java_path():
+    # Command to get the Java executable path
+    command = "which java" if platform.system() != "Windows" else "where java"
+    
+    try:
+        # Execute the command and capture the output
+        java_path = subprocess.check_output(command, shell=True, text=True)
+        return java_path.strip()
+    except subprocess.CalledProcessError:
+        return "Java not found or an error occurred."
+
 # Function to extract tables from PDF and create a zip archive
 def extract_and_zip(pdf_file):
     tables = tabula.read_pdf(pdf_file, pages='all', multiple_tables=True)
@@ -67,7 +81,8 @@ def extract_and_zip(pdf_file):
     return zip_buffer
 
 def main():
-
+    java_path = get_java_path()
+    print(f"Java is installed at: {java_path}")
     pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 
     if pdf_file is not None:
