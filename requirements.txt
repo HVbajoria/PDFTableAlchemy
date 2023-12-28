@@ -3,3 +3,6 @@ pandas
 tabula-py 
 openpyxl
 jpype1
+azure-ai-formrecognizer==3.3.0
+XlsxWriter==3.0.1 
+python-dotenv
